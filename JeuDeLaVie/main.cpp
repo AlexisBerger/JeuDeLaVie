@@ -3,48 +3,61 @@
 
 #define WINDOW_TITLE "Jeu de la vie"
 #define COLOR_BACKGROUND sf::Color::White
-#define WINDOW_HEIGHT 800
-#define WINDOW_WIGTH 800
+#define WINDOW_HEIGHT 900.0f
+#define WINDOW_WIDTH 900.0f
 #define COLOR_GRID sf::Color(127, 133, 142)
-#define GRID_SIZE 100
+#define GRID_SIZE 300
 #define GRID_THICKNESS 100
 
 
 void renderingThread(sf::RenderWindow* window);
 void computingThread(sf::RenderWindow* window);
 int getVoisin(int i, int j);
+void populateArray(bool(&arrayA)[GRID_SIZE][GRID_SIZE], const bool(&arrayB)[GRID_SIZE][GRID_SIZE]);
+
 //init window
-sf::RenderWindow window(sf::VideoMode(WINDOW_WIGTH, WINDOW_HEIGHT), WINDOW_TITLE);
+sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
 //init rendering thread
 sf::Thread thread(&renderingThread, &window);
 sf::Thread thread2(&computingThread, &window);
 
-sf::RectangleShape recCell[GRID_SIZE*GRID_SIZE];
+
+static bool cellule[GRID_SIZE][GRID_SIZE];
+static bool buffer[GRID_SIZE][GRID_SIZE];
+/*
 bool** cellule;
 bool** buffer;
-
+*/
 int main()
 {
+	/*
 	cellule = new bool*[GRID_SIZE];
 	for (int i = 0; i < GRID_SIZE; ++i)
 		cellule[i] = new bool[GRID_SIZE];
 	buffer = new bool*[GRID_SIZE];
 	for (int i = 0; i < GRID_SIZE; ++i)
 		buffer[i] = new bool[GRID_SIZE];
-
+	*/
 	for (int i = GRID_SIZE - 1; i >= 0; i--)
 	{
 		for (int j = GRID_SIZE - 1; j >= 0; j--)
 		{
+			//*
 			if (rand() % 2 == 0)
 				cellule[i][j] = false;
 			else
-				cellule[i][j] = true;
+				cellule[i][j] = true;//*/
+			//cellule[i][j] = false;
 		}
 	}
-
+	/*
+	cellule[0][0] = true;
+	cellule[0][1] = true;
+	cellule[1][0] = true;
+	cellule[1][1] = true;
+*/
 	window.clear(COLOR_BACKGROUND);
-
+	window.setVerticalSyncEnabled(true);
 	window.setActive(false);
 
 	thread.launch();
@@ -60,33 +73,40 @@ int main()
 				window.close();
 		}
 
-
+		sf::sleep(sf::milliseconds(50));
 	}
 
 	return 0;
 }
 void bufCell() {
-	for (int i = GRID_SIZE - 1; i >= 0; i--)
+	/*for (int i = GRID_SIZE - 1; i >= 0; i--)
 	{
 		for (int j = GRID_SIZE - 1; j >= 0; j--)
 		{
 			buffer[i][j] = cellule[i][j];
 		}
-	}
+	}*/
 	//	std::copy(cellule, cellule+GRID_SIZE*GRID_SIZE, buffer);
+	populateArray(buffer, cellule);
 }
 void deBufCell() {
-	for (int i = GRID_SIZE - 1; i >= 0; i--)
+	/*for (int i = GRID_SIZE - 1; i >= 0; i--)
 	{
 		for (int j = GRID_SIZE - 1; j >= 0; j--)
 		{
 			cellule[i][j]=buffer[i][j];
 		}
-	}
+	}*/
 	//std::copy(buffer, buffer + GRID_SIZE*GRID_SIZE, cellule);
+	populateArray(cellule, buffer);
+}
+void populateArray(bool(&arrayA)[GRID_SIZE][GRID_SIZE], const bool(&arrayB)[GRID_SIZE][GRID_SIZE]) {
+
+	memcpy(arrayA, arrayB, sizeof(arrayB));
 }
 void computingThread(sf::RenderWindow* window) {
 	sf::sleep(sf::milliseconds(5000));
+	long int loop = 0;
 	while (window->isOpen())
 	{
 
@@ -110,8 +130,7 @@ void computingThread(sf::RenderWindow* window) {
 		}
 	
 		deBufCell();
-
-		//sf::sleep(sf::milliseconds(1000));
+		//sf::sleep(sf::milliseconds(10));
 	}
 
 }
@@ -144,65 +163,52 @@ void renderingThread(sf::RenderWindow* window)
 
 
 	sf::VertexArray gridH[GRID_SIZE];
-
-	for (int i = GRID_SIZE - 1; i >= 0; i--)
-	{
-		sf::Vector2f point1(0, (WINDOW_HEIGHT / GRID_SIZE)*i);
-		sf::Vector2f point2(WINDOW_WIGTH, (WINDOW_HEIGHT / GRID_SIZE)*i);
-		sf::VertexArray line(sf::LineStrip, 2);
-		line[0].position = point1;
-		line[0].color = COLOR_GRID;
-		line[1].position = point2;
-		line[1].color = COLOR_GRID;
-		gridH[i] = line;
-	}
 	sf::VertexArray gridV[GRID_SIZE];
-
 	for (int i = GRID_SIZE - 1; i >= 0; i--)
 	{
-		sf::Vector2f point1((WINDOW_WIGTH / GRID_SIZE)*i, 0);
-		sf::Vector2f point2((WINDOW_WIGTH / GRID_SIZE)*i, WINDOW_HEIGHT);
-		sf::VertexArray line(sf::LineStrip, 2);
-		line[0].position = point1;
-		line[0].color = COLOR_GRID;
-		line[1].position = point2;
-		line[1].color = COLOR_GRID;
-		gridV[i] = line;
-	}
+		sf::Vector2f pointH1(0, (WINDOW_HEIGHT / GRID_SIZE)*i);
+		sf::Vector2f pointH2(WINDOW_WIDTH, (WINDOW_HEIGHT / GRID_SIZE)*i);
+		sf::VertexArray lineH(sf::LineStrip, 2);
+		lineH[0].position = pointH1;
+		lineH[0].color = COLOR_GRID;
+		lineH[1].position = pointH2;
+		lineH[1].color = COLOR_GRID;
+		gridH[i] = lineH;
 
+		sf::Vector2f pointV1((WINDOW_WIDTH / GRID_SIZE)*i, 0);
+		sf::Vector2f pointV2((WINDOW_WIDTH / GRID_SIZE)*i, WINDOW_HEIGHT);
+		sf::VertexArray lineV(sf::LineStrip, 2);
+		lineV[0].position = pointV1;
+		lineV[0].color = COLOR_GRID;
+		lineV[1].position = pointV2;
+		lineV[1].color = COLOR_GRID;
+		gridV[i] = lineV;
+
+	}
 	
 
 	while (window->isOpen())
 	{
-		
+		window->clear(COLOR_BACKGROUND);
+
 		int nb = 0;
 		for (int i = GRID_SIZE - 1; i >= 0; i--)
 		{
 			for (int j = GRID_SIZE - 1; j >= 0; j--)
 			{
 				if (cellule[i][j] == true) {
-					sf::RectangleShape rectangle(sf::Vector2f((WINDOW_WIGTH / GRID_SIZE) - 1, (WINDOW_HEIGHT / GRID_SIZE) - 1));
-					rectangle.setPosition(sf::Vector2f(((WINDOW_WIGTH / GRID_SIZE)*i), ((WINDOW_HEIGHT / GRID_SIZE)*j) + 1));
+					sf::RectangleShape rectangle(sf::Vector2f((WINDOW_WIDTH / GRID_SIZE) - 1, (WINDOW_HEIGHT / GRID_SIZE) - 1));
+					rectangle.setPosition(sf::Vector2f(((WINDOW_WIDTH / GRID_SIZE)*i), ((WINDOW_HEIGHT / GRID_SIZE)*j) + 1));
 					rectangle.setFillColor(sf::Color::Black);
-					recCell[nb] = rectangle;
-					nb++;
+					window->draw(rectangle);
 				}
 			}
-		}
-
-		window->clear(COLOR_BACKGROUND);
-
-		for (int i = GRID_SIZE - 1; i >= 0; i--)
-		{
 			window->draw(gridH[i]);
 			window->draw(gridV[i]);
 		}
-		for (int i = nb - 1; i >= 0; i--)
-		{
-			window->draw(recCell[i]);
-		}
 
 		window->display();
+		sf::sleep(sf::milliseconds(15));
 	}
 }
 
